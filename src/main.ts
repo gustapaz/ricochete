@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Machine, W, H, PADDLE_Y, names, readSave, type Save } from './model';
+import { bindPauseLifecycle } from './lifecycle';
 import './style.css';
 
 const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -57,11 +58,13 @@ function sync(force = false) {
   el('pause').textContent = machine.mode === 'paused' ? '▶' : 'Ⅱ';
   el('pause').setAttribute('aria-label',machine.mode === 'paused' ? 'Retomar jogo' : 'Pausar jogo');
   if (!started || helpOpen || (!force && oldMode === machine.mode && oldLevel === machine.level)) return;
+  const resumed = oldMode === 'paused';
   oldMode = machine.mode; oldLevel = machine.level;
   if (machine.mode === 'playing' || machine.mode === 'ready') {
     overlay.hidden = true;
     el('hint').textContent = machine.mode === 'ready' ? 'ESPAÇO OU BOTÃO PARA LANÇAR' : 'ARRASTE / ← → · ESPAÇO INVERTE';
-    if (machine.mode === 'ready') announce(`Arena ${machine.level + 1}: ${names[machine.level]}. ${machine.lives} cargas. Lance o pulso.`);
+    if (machine.mode === 'ready') announce(`Arena ${machine.level + 1}: ${names[machine.level]}. ${machine.lives} ${machine.lives === 1 ? 'carga' : 'cargas'}. Lance o pulso.`);
+    else if (resumed) announce('Jogo retomado.');
   } else if (machine.mode === 'paused') {
     panel('TEMPO PARA RESPIRAR','O impulso espera.','A máquina está pausada. Seu pulso e suas cargas estão seguros.','Continuar ↗','P / ESC TAMBÉM RETOMA',true); announce('Jogo pausado.'); primary.focus({preventScroll:true});
   } else if (machine.mode === 'between') {
@@ -108,8 +111,7 @@ overlay.addEventListener('keydown', e => {
     e.preventDefault(); machine.resume(); sync(true); focusArena();
   }
 });
-window.addEventListener('blur', pause);
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+bindPauseLifecycle(window, document, () => { pointerActive = false; pause(); });
 let pointerActive = false;
 function pointerMove(e: PointerEvent) { const rect = arena.getBoundingClientRect(); machine.move((e.clientX - rect.left) / rect.width * W); }
 arena.addEventListener('pointerdown', e => { if (!started) return; pointerActive = true; arena.setPointerCapture(e.pointerId); pointerMove(e); focusArena(); });

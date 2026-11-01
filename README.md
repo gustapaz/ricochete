@@ -4,6 +4,8 @@ Uma máquina de impulso: rebata o pulso, inverta a gravidade e encontre novos â
 
 **[Jogar no navegador](https://gustapaz.github.io/ricochete/)**
 
+![Partida de Ricochete publicada: pulso, alvos e gravidade invertida](docs/public-gameplay.png)
+
 ## Jogar
 
 | Ação | Controle |
